@@ -1,0 +1,97 @@
+# 开发环境配置
+server:
+  port: 8080
+
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/sichuan_poker?useSSL=false&serverTimezone=UTC&useUnicode=true&characterEncoding=utf-8
+    username: ${MYSQL_USERNAME:root}
+    password: ${MYSQL_PASSWORD:123456}
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      idle-timeout: 30000
+      connection-timeout: 20000
+      connection-test-query: SELECT 1
+      pool-name: SichuanPokerHikariCP
+      max-lifetime: 1800000
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+        format_sql: true
+        use_sql_comments: true
+        jdbc:
+          batch_size: 50
+          order_inserts: true
+          order_updates: true
+  redis:
+    host: ${REDIS_HOST:localhost}
+    port: ${REDIS_PORT:6379}
+    password: ${REDIS_PASSWORD:}
+    database: 0
+    timeout: 3000ms
+    lettuce:
+      pool:
+        max-active: 50
+        max-wait: -1ms
+        max-idle: 20
+        min-idle: 5
+
+logging:
+  level:
+    com.sichuan.poker: DEBUG
+    com.zaxxer.hikari: DEBUG
+    org.springframework.web: DEBUG
+  file:
+    name: logs/sichuan-poker.log
+  pattern:
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+
+mybatis:
+  configuration:
+    map-underscore-to-camel-case: true
+    cache-enabled: true
+    call-setters-on-nulls: true
+    jdbc-type-for-null: 'null'
+  mapper-locations: classpath*:mapper/*Mapper.xml
+  type-aliases-package: com.sichuan.poker.entity
+
+# 缓存配置
+cache:
+  type: redis
+  redis:
+    time-to-live: 1800000 # 30分钟
+    cache-null-values: false
+
+# 游戏配置
+game:
+  # 心跳检测间隔（秒）
+  heartbeat-interval: 30
+  # 游戏超时时间（秒）
+  game-timeout: 300
+  # 房间超时时间（秒）
+  room-timeout: 600
+  # 最大房间数
+  max-rooms: 1000
+  # 每个房间最大玩家数
+  max-players-per-room: 4
+
+# 微信配置
+wx:
+  appid: ${WX_APPID:}
+  secret: ${WX_SECRET:}
+  # 授权域名
+  authorized-domains: ${WX_AUTHORIZED_DOMAINS:}
+
+# 文件上传配置
+file:
+  upload:
+    path: ${UPLOAD_PATH:/tmp/uploads}
+    max-size: 10MB
+    allowed-types: image/jpeg,image/png,image/gif,application/pdf

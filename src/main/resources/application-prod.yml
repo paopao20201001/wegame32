@@ -1,0 +1,101 @@
+# 生产环境配置
+server:
+  port: 8080
+  tomcat:
+    max-threads: 200
+    min-spare-threads: 20
+    accept-count: 100
+    max-connections: 10000
+    connection-timeout: 20000
+
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://${MYSQL_HOST:localhost}:${MYSQL_PORT:3306}/${MYSQL_DATABASE:sichuan_poker}?useSSL=true&serverTimezone=UTC&useUnicode=true&characterEncoding=utf-8&autoReconnect=true&failOverReadOnly=false&maxReconnects=10
+    username: ${MYSQL_USERNAME}
+    password: ${MYSQL_PASSWORD}
+    hikari:
+      maximum-pool-size: 50
+      minimum-idle: 10
+      idle-timeout: 60000
+      connection-timeout: 30000
+      connection-test-query: SELECT 1
+      pool-name: SichuanPokerHikariCP-Prod
+      max-lifetime: 1800000
+      leak-detection-threshold: 60000
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+  redis:
+    host: ${REDIS_HOST}
+    port: ${REDIS_PORT}
+    password: ${REDIS_PASSWORD}
+    database: 0
+    timeout: 3000ms
+    lettuce:
+      pool:
+        max-active: 200
+        max-wait: -1ms
+        max-idle: 50
+        min-idle: 10
+
+logging:
+  level:
+    root: INFO
+    com.sichuan.poker: INFO
+    org.springframework.web: WARN
+  file:
+    name: /var/log/sichuan-poker/application.log
+    max-size: 50MB
+    max-history: 30
+  pattern:
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+
+mybatis:
+  configuration:
+    map-underscore-to-camel-case: true
+    cache-enabled: false
+
+# 缓存配置
+cache:
+  type: redis
+  redis:
+    time-to-live: 3600000 # 60分钟
+
+# 游戏配置
+game:
+  heartbeat-interval: 60
+  game-timeout: 600
+  room-timeout: 1200
+  max-rooms: 5000
+  max-players-per-room: 4
+
+# 微信配置
+wx:
+  appid: ${WX_APPID}
+  secret: ${WX_SECRET}
+
+# 监控配置
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
+# 文件上传配置
+file:
+  upload:
+    path: ${UPLOAD_PATH:/data/uploads}
+    max-size: 10MB
+    allowed-types: image/jpeg,image/png,application/pdf
