@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sichuan.poker.repository.RoomMapper">
+
+    <!-- 创建房间 -->
+    <insert id="insert" parameterType="com.sichuan.poker.entity.Room" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO room (
+            room_id, room_name, owner_id, player_count, max_players, status,
+            `password`, is_private, rules_snapshot, create_time, start_time, end_time
+        ) VALUES (
+            #{roomId}, #{roomName}, #{ownerId}, #{playerCount}, #{maxPlayers}, #{status},
+            #{password}, #{isPrivate}, #{rulesSnapshot}, #{createTime}, #{startTime}, #{endTime}
+        )
+    </insert>
+
+    <!-- 根据roomId查询房间 -->
+    <select id="findByRoomId" resultType="com.sichuan.poker.entity.Room">
+        SELECT * FROM room WHERE room_id = #{roomId}
+    </select>
+
+    <!-- 更新房间状态 -->
+    <update id="updateStatus">
+        UPDATE room SET status = #{status}, start_time = NOW()
+        WHERE room_id = #{roomId}
+    </update>
+
+    <!-- 查询等待中的房间 -->
+    <select id="findWaitingRooms" resultType="com.sichuan.poker.entity.Room">
+        SELECT * FROM room
+        WHERE status = 0 AND max_players = #{maxPlayers}
+        ORDER BY create_time DESC
+        LIMIT 50
+    </select>
+
+    <!-- 加入房间 -->
+    <update id="joinRoom">
+        UPDATE room
+        SET player_count = player_count + 1
+        WHERE room_id = #{roomId} AND player_count < max_players
+    </update>
+
+    <!-- 玩家准备 -->
+    <update id="playerReady">
+        UPDATE room_player
+        SET status = 1, ready_time = NOW()
+        WHERE room_id = #{roomId} AND player_id = #{openId}
+    </update>
+
+    <!-- 查询房间玩家列表 -->
+    <select id="getRoomPlayers" resultType="com.sichuan.poker.entity.Player">
+        SELECT p.*
+        FROM player p
+        JOIN room_player rp ON p.id = rp.player_id
+        WHERE rp.room_id = #{roomId}
+        ORDER BY rp.seat_index ASC
+    </select>
+
+    <!-- 删除房间 -->
+    <delete id="deleteByRoomId">
+        DELETE FROM room WHERE room_id = #{roomId}
+    </delete>
+
+</mapper>

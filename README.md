@@ -1,122 +1,243 @@
-# wxcloudrun-springboot
-[![GitHub license](https://img.shields.io/github/license/WeixinCloud/wxcloudrun-express)](https://github.com/WeixinCloud/wxcloudrun-express)
-![GitHub package.json dependency version (prod)](https://img.shields.io/badge/maven-3.6.0-green)
-![GitHub package.json dependency version (prod)](https://img.shields.io/badge/jdk-11-green)
+# 四川3带2扑克游戏后端
 
-微信云托管 Java Springboot 框架模版，实现简单的计数器读写接口，使用云托管 MySQL 读写、记录计数值。
+基于Spring Boot 2.5.5的微信小游戏后端服务，支持四川3带2扑克游戏的核心功能。
 
-![](https://qcloudimg.tencent-cloud.cn/raw/be22992d297d1b9a1a5365e606276781.png)
+## 功能特性
 
+- 🔐 微信授权登录
+- 🏠 房间管理（创建、加入、准备、解散）
+- 🃏 游戏规则配置化
+- 🎮 游戏出牌校验
+- 📊 游戏记录和积分系统
+- 🗄️ MySQL数据库支持
+
+## 技术栈
+
+- Spring Boot 2.5.5
+- MyBatis
+- MySQL 8.0
+- Maven 3.6+
 
 ## 快速开始
-前往 [微信云托管快速开始页面](https://developers.weixin.qq.com/miniprogram/dev/wxcloudrun/src/basic/guide.html)，选择相应语言的模板，根据引导完成部署。
 
-## 本地调试
-下载代码在本地调试，请参考[微信云托管本地调试指南](https://developers.weixin.qq.com/miniprogram/dev/wxcloudrun/src/guide/debug/)。
+### 1. 环境要求
 
-## 实时开发
-代码变动时，不需要重新构建和启动容器，即可查看变动后的效果。请参考[微信云托管实时开发指南](https://developers.weixin.qq.com/miniprogram/dev/wxcloudrun/src/guide/debug/dev.html)
+- JDK 1.8+
+- Maven 3.6+
+- MySQL 8.0+
 
-## Dockerfile最佳实践
-请参考[如何提高项目构建效率](https://developers.weixin.qq.com/miniprogram/dev/wxcloudrun/src/scene/build/speed.html)
+### 2. 数据库初始化
 
-## 目录结构说明
-~~~
-.
-├── Dockerfile                      Dockerfile 文件
-├── LICENSE                         LICENSE 文件
-├── README.md                       README 文件
-├── container.config.json           模板部署「服务设置」初始化配置（二开请忽略）
-├── mvnw                            mvnw 文件，处理mevan版本兼容问题
-├── mvnw.cmd                        mvnw.cmd 文件，处理mevan版本兼容问题
-├── pom.xml                         pom.xml文件
-├── settings.xml                    maven 配置文件
-├── springboot-cloudbaserun.iml     项目配置文件
-└── src                             源码目录
-    └── main                        源码主目录
-        ├── java                    业务逻辑目录
-        └── resources               资源文件目录
-~~~
+```bash
+# 导入数据库脚本
+mysql -u root -p < src/main/resources/schema.sql
+```
 
+### 3. 配置数据库
 
-## 服务 API 文档
+修改 `application.yml` 中的数据库配置：
 
-### `GET /api/count`
+```yaml
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/sichuan_poker?useSSL=false&serverTimezone=UTC
+    username: your_username
+    password: your_password
+```
 
-获取当前计数
+### 4. 配置微信小程序
 
-#### 请求参数
+在 `application.yml` 中配置微信小程序的AppID和Secret：
 
-无
+```yaml
+wx:
+  appid: your_appid
+  secret: your_secret
+```
 
-#### 响应结果
+### 5. 启动应用
 
-- `code`：错误码
-- `data`：当前计数值
+```bash
+# 使用Maven
+mvn spring-boot:run
 
-##### 响应结果示例
+# 或者直接运行
+java -jar target/sichuan-poker-game-backend-1.0.jar
+```
 
-```json
+应用将在 http://localhost:8080 启动
+
+## API文档
+
+### 玩家相关
+
+#### 微信登录
+```
+POST /api/player/login
+Content-Type: application/json
+
 {
-  "code": 0,
-  "data": 42
+  "code": "微信授权码",
+  "nickName": "玩家昵称",
+  "avatarUrl": "头像URL"
 }
 ```
 
-#### 调用示例
-
+#### 获取玩家信息
 ```
-curl https://<云托管服务域名>/api/count
+GET /api/player/info/{openId}
 ```
 
-
-
-### `POST /api/count`
-
-更新计数，自增或者清零
-
-#### 请求参数
-
-- `action`：`string` 类型，枚举值
-  - 等于 `"inc"` 时，表示计数加一
-  - 等于 `"clear"` 时，表示计数重置（清零）
-
-##### 请求参数示例
-
+#### 实名认证
 ```
+POST /api/player/realname/{openId}?realName=姓名&idCard=身份证号
+```
+
+### 房间相关
+
+#### 创建房间
+```
+POST /api/room/create
+Content-Type: application/json
+
 {
-  "action": "inc"
+  "roomName": "房间名称",
+  "maxPlayers": 4,
+  "isPrivate": false,
+  "password": null,
+  "rules": {
+    "card_count": 54,
+    "cards_per_player": 17
+  }
 }
 ```
 
-#### 响应结果
+#### 获取房间列表
+```
+GET /api/room/list?maxPlayers=4&page=0&size=10
+```
 
-- `code`：错误码
-- `data`：当前计数值
+#### 加入房间
+```
+POST /api/room/{roomId}/join?openId=玩家OpenID
+```
 
-##### 响应结果示例
+#### 玩家准备
+```
+POST /api/room/{roomId}/ready?openId=玩家OpenID
+```
 
-```json
+### 游戏相关
+
+#### 出牌
+```
+POST /api/game/play
+Content-Type: application/json
+
 {
-  "code": 0,
-  "data": 42
+  "roomId": "房间ID",
+  "playerId": 1,
+  "cardIds": ["H3", "H4", "H5"],
+  "actionType": 1,
+  "lastPlayId": 1
 }
 ```
 
-#### 调用示例
+#### 过牌
+```
+POST /api/game/pass?roomId=房间ID&openId=玩家OpenID
+```
+
+#### 获取游戏状态
+```
+GET /api/game/state/{roomId}
+```
+
+## 数据库表结构
+
+### player - 玩家表
+- id: 主键
+- open_id: 微信OpenID
+- union_id: 微信UnionID
+- nick_name: 昵称
+- avatar_url: 头像URL
+- level: 等级
+- score: 积分
+- win_count: 胜利次数
+- lose_count: 失败次数
+- status: 状态
+
+### room - 房间表
+- id: 主键
+- room_id: 房间唯一标识
+- room_name: 房间名称
+- owner_id: 房主ID
+- player_count: 玩家数量
+- max_players: 最大玩家数
+- status: 状态
+- rules_snapshot: 规则快照
+
+### game_rule - 游戏规则表
+- id: 主键
+- rule_key: 规则键
+- rule_value: 规则值
+- rule_type: 规则类型
+
+### game_record - 游戏记录表
+- id: 主键
+- game_id: 游戏ID
+- room_id: 房间ID
+- winner_id: 获胜者ID
+- settlement_info: 结算信息
+
+## 部署说明
+
+### 使用Docker
+
+```bash
+# 构建镜像
+docker build -t sichuan-poker-backend .
+
+# 运行容器
+docker run -d -p 8080:8080 \
+  -e MYSQL_HOST=host.docker.internal \
+  -e MYSQL_USERNAME=root \
+  -e MYSQL_PASSWORD=123456 \
+  sichuan-poker-backend
+```
+
+### 使用JAR包
+
+```bash
+# 打包
+mvn clean package
+
+# 运行
+java -jar sichuan-poker-game-backend-1.0.jar
+```
+
+## 开发说明
+
+### 项目结构
 
 ```
-curl -X POST -H 'content-type: application/json' -d '{"action": "inc"}' https://<云托管服务域名>/api/count
+src/main/java/com/sichuan/poker/
+├── controller/     # 控制器层
+├── service/        # 业务逻辑层
+├── repository/     # 数据访问层
+├── entity/        # 实体类
+├── dto/           # 数据传输对象
+├── config/        # 配置类
+└── utils/         # 工具类
 ```
 
-## 使用注意
-如果不是通过微信云托管控制台部署模板代码，而是自行复制/下载模板代码后，手动新建一个服务并部署，需要在「服务设置」中补全以下环境变量，才可正常使用，否则会引发无法连接数据库，进而导致部署失败。
-- MYSQL_ADDRESS
-- MYSQL_PASSWORD
-- MYSQL_USERNAME
-以上三个变量的值请按实际情况填写。如果使用云托管内MySQL，可以在控制台MySQL页面获取相关信息。
+### 核心功能
 
+1. **规则引擎**：支持动态规则配置和验证
+2. **房间管理**：创建、加入、准备、解散房间
+3. **游戏逻辑**：出牌校验、游戏流程控制
+4. **积分系统**：计算得分、更新玩家积分
 
-## License
+## 许可证
 
-[MIT](./LICENSE)
+MIT License

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sichuan.poker.repository.PlayerMapper">
+
+    <!-- 根据OpenID查询玩家 -->
+    <select id="findByOpenId" resultType="com.sichuan.poker.entity.Player">
+        SELECT * FROM player WHERE open_id = #{openId}
+    </select>
+
+    <!-- 创建玩家 -->
+    <insert id="insert" parameterType="com.sichuan.poker.entity.Player" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO player (
+            open_id, union_id, nick_name, avatar_url, level, score, win_count, lose_count,
+            last_login_time, status, is_real_name_auth, real_name, id_card, create_time, update_time
+        ) VALUES (
+            #{openId}, #{unionId}, #{nickName}, #{avatarUrl}, #{level}, #{score}, #{winCount}, #{loseCount},
+            #{lastLoginTime}, #{status}, #{isRealNameAuth}, #{realName}, #{idCard}, #{createTime}, #{updateTime}
+        )
+    </insert>
+
+    <!-- 更新玩家信息 -->
+    <update id="update" parameterType="com.sichuan.poker.entity.Player">
+        UPDATE player
+        SET nick_name = #{nickName},
+            avatar_url = #{avatarUrl},
+            last_login_time = #{lastLoginTime},
+            update_time = #{updateTime}
+        WHERE open_id = #{openId}
+    </update>
+
+    <!-- 更新玩家状态 -->
+    <update id="updateStatus">
+        UPDATE player SET status = #{status}, update_time = NOW()
+        WHERE open_id = #{openId}
+    </update>
+
+</mapper>

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sichuan.poker.repository.GameRuleMapper">
+
+    <!-- 获取服务器默认规则 -->
+    <select id="getDefaultRules" resultType="com.sichuan.poker.entity.GameRule">
+        SELECT * FROM game_rule
+        WHERE rule_type = 1 AND is_default = 1
+        ORDER BY id ASC
+    </select>
+
+    <!-- 获取房间自定义规则 -->
+    <select id="getRoomRules" resultType="com.sichuan.poker.entity.GameRule">
+        SELECT * FROM game_rule
+        WHERE rule_type = 2 AND room_id = #{roomId}
+        ORDER BY id ASC
+    </select>
+
+    <!-- 更新规则 -->
+    <update id="updateRules">
+        DELETE FROM game_rule WHERE room_id = #{roomId} AND rule_type = 2
+        <foreach collection="rules" item="rule" separator="">
+            INSERT INTO game_rule (
+                rule_key, rule_name, rule_value, rule_type, room_id,
+                is_default, status, description, create_time, update_time
+            ) VALUES (
+                #{rule.ruleKey}, #{rule.ruleName}, #{rule.ruleValue}, 2, #{roomId},
+                #{rule.isDefault}, #{rule.status}, #{rule.description}, NOW(), NOW()
+            )
+        </foreach>
+    </update>
+
+    <!-- 插入规则 -->
+    <insert id="insertRule" parameterType="com.sichuan.poker.entity.GameRule" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO game_rule (
+            rule_key, rule_name, rule_value, rule_type, room_id,
+            is_default, status, description, create_time, update_time
+        ) VALUES (
+            #{ruleKey}, #{ruleName}, #{ruleValue}, #{ruleType}, #{roomId},
+            #{isDefault}, #{status}, #{description}, NOW(), NOW()
+        )
+    </insert>
+
+</mapper>
